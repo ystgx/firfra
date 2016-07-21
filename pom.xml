@@ -17,7 +17,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-		
 			<!-- log framework -->
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -47,6 +46,8 @@
 				<artifactId>spring-context</artifactId>
 				<version>${springframework.version}</version>
 			</dependency>
+			
+			<!-- 官方推荐方式去除commons-logging依赖 ，改用slf4j-->
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-core</artifactId>
