@@ -15,5 +15,6 @@ public @interface InvokerConfig {
 	
 	String excutorRef() default "";
 	
-	Class<?> excutor() ;
+	Class<?> resultMapper();
+	
 }

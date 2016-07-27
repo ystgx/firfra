@@ -8,10 +8,7 @@ import java.util.Set;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -32,9 +29,9 @@ import com.tison.firfra.rpc.core.annotation.InvokerConfig;
 public class InvokerClientInterceptor extends RemoteAccessor
 		implements InitializingBean, MethodInterceptor, ApplicationContextAware{
 	
-	private Map<Method,InvokerMethodConfigHolder> methodConfigMapping = new HashMap<Method,InvokerMethodConfigHolder>(32);
+	protected Map<Method,InvokerMethodConfigHolder> methodConfigMapping = new HashMap<Method,InvokerMethodConfigHolder>(32);
 	
-	private ApplicationContext applicationContext;
+	protected ApplicationContext applicationContext;
 	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -64,7 +61,6 @@ public class InvokerClientInterceptor extends RemoteAccessor
 		final Set<Method> invokerMethods = new LinkedHashSet<Method>();
 		
 		String globalExcutorRef = globalConfig.excutorRef();
-		Class<?> globalExcutorClass = globalConfig.excutor();
 		String globalServiceUrl = globalConfig.value();
 		
 		Method [] methods =  ReflectionUtils.getAllDeclaredMethods(serviceInterface);
@@ -72,13 +68,23 @@ public class InvokerClientInterceptor extends RemoteAccessor
 			InvokerConfig config = AnnotationUtils.findAnnotation(method, InvokerConfig.class);
 			if(config != null){
 				String excutorRef =  config.excutorRef();
-				Class<?> excutorClass = config.excutor();
-				String serviceUrl = config.value();
+				String serviceUrl = combineServiceUrl(globalServiceUrl,config.value());
 			}
 		}
 	}
+	
 	private String combineServiceUrl(String globalServiceUrl,String serviceUrl){
-		return null;
+		String typeValue = StringUtils.hasText(globalServiceUrl) ? globalServiceUrl : "";
+		String methodValue = StringUtils.hasText(serviceUrl) ? serviceUrl : "";
+		typeValue = applicationContext.getEnvironment().resolveRequiredPlaceholders(typeValue);
+		methodValue	= applicationContext.getEnvironment().resolveRequiredPlaceholders(methodValue);	
+		if(typeValue.endsWith("\\")){
+			typeValue = typeValue.substring(0, typeValue.length()-1);
+		}
+		if(methodValue.startsWith("\\")){
+			methodValue = methodValue.substring(1, typeValue.length());
+		}
+		return typeValue.concat(methodValue);
 	}
 	
 	public class InvokerMethodConfigHolder{
